@@ -172,6 +172,31 @@ this的值。
 
 ## JavaScript执行（四）：try里面放return，finally还会执行吗？
 
+**Completion 类型**
+Completion Record用于描述异常、跳出等语句执行过程。
+
+Completion Record表示一个语句执行完之后的结果，它有三个字段：
+* [[type]]表示完成的类型，有break continue return throw和normal几种类型；
+* [[value]]表示语句的返回值，如果语句没有则是empty；
+* [[target]]表示语句的目标，通常是一个JavaScript标签。
+
+**语句块**
+return 语句可能产生return或者throw类型的Completion Record。
+非normal的完成类型可以穿透复杂的语句嵌套结构，产生控制效果。
+
+因为finally中的内容必须保证执行，所以try/catch执行完毕，即使得到的结果是非normal型的完成记录。也必须要执行finally。
+
+而当finally执行也得到了非normal记录，则会使finally中的记录作为整个try结构的结果。
+
+**带标签的语句**
+大部分时候，这个东西类似于注释，没有任何用处。唯一有作用的时候是：与完成记录类型的target相配合，用于跳出多层循环。
+
+## JavaScript词法：为什么12.toString会报错？
+
+文法是编译原理中对语言的写法的一种规定，一般来说，文法分成词法和语法两种。
+
+词法规定了语言的最小语义单元：token，可以翻译成“标记”或者“词”。
+
 
 
 
