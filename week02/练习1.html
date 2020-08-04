@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>在一个字符串中，找到字符”a”</title>
+</head>
+<body>
+<script>
+function query(str) {
+    for (const ch of str) {
+        if (ch === 'a') {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+console.log(query("I'm a dog!!!"));
+</script>
+</body>
+</html>
