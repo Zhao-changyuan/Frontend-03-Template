@@ -22,4 +22,5 @@ URL --> HTML --> DOM --> DOM with CSS --> DOM with position --> Bitmap
 
 ## 4.状态机|不使用状态机处理字符串（二）
 
+## 8. HTTP请求 | HTTP的协议解析
 
