@@ -22,4 +22,13 @@ URL --> HTML --> DOM --> DOM with CSS --> DOM with position --> Bitmap
 
 ## 4.状态机|不使用状态机处理字符串（二）
 
+## 9. HTTP请求|服务端环境准备
+
+## 10. HTTP请求|实现一个HTTP的请求
+
+**第一步：HTTP请求总结**
+* 设计一个HTTP请求的类
+* Content-Type是一个必要的header字段，要有默认值
+* body是KV格式
+* 不同的Content-Type影响body的格式
 
