@@ -6,7 +6,9 @@ http.createServer((request, response) => {
     request.on('error', (err) => {
         console.log(err);
     }).on('data', (chunk) => {
-        body.push(chunk.toString());
+        // 这里chunk是Buffer类型，如果转成string，会导致end中 Buffer.concat(body)报错。
+        // body.push(chunk.toString());
+        body.push(chunk);
     }).on('end', () => {
         body = Buffer.concat(body).toString();
         console.log('body:', body);
