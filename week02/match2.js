@@ -1,12 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>在一个字符串中，找到字符”ab”</title>
-</head>
-<body>
-<script>
 function queryAb(str) {
     if (!str || str.length < 2) {
         return -1;
@@ -38,6 +29,3 @@ function queryAb(str) {
 }
 
 console.log(queryAb("I'm b dog!!!ab"));
-</script>
-</body>
-</html>
