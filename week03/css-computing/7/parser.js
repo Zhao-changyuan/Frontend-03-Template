@@ -96,6 +96,22 @@ function match(element, selector) {
     return false; */
 }
 
+function specificity(selector) {
+    var p = [0, 0, 0, 0];
+    var selectorParts = selector.split(' ');
+    for (let part of selectorParts) {
+        if (part.charAt(0) === '#') {
+            p[1] += 1;
+        } else if (part.charAt(0) === '.') {
+            p[2] += 1;
+        } else {
+            p[3] += 1;
+        }
+    }
+
+    return p;
+}
+
 function computeCSS(element) {
     // console.log(rules);
     // console.log('compute CSS for Element', element);
