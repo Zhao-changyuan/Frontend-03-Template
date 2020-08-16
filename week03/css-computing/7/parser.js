@@ -100,16 +100,47 @@ function specificity(selector) {
     var p = [0, 0, 0, 0];
     var selectorParts = selector.split(' ');
     for (let part of selectorParts) {
-        if (part.charAt(0) === '#') {
+        // 复合选择器正则
+        var patternStr = `([a-zA-Z_]+[a-zA-Z0-9_\\-]*)?((\\.[a-zA-Z_]+[a-zA-Z0-9_\\-]*)*)(#[a-zA-Z_]+[a-zA-Z0-9_\\-]*)?`
+        var regExp = new RegExp(patternStr, 'g')
+        var matchs = regExp.exec(part);
+        
+        if (matchs[1]) {
+            p[3] += 1;
+        }
+
+        if (matchs[2]) {
+            p[2] += matchs[2].slice(1).split('.').length;
+        }
+
+        if (matchs[4]) {
+            p[1] += 1;
+        }
+
+        /* if (part.charAt(0) === '#') {
             p[1] += 1;
         } else if (part.charAt(0) === '.') {
             p[2] += 1;
         } else {
             p[3] += 1;
-        }
+        } */
     }
 
     return p;
+}
+
+function compare(sp1, sp2) {
+    if (sp1[0] - sp2[0]) {
+        return sp1[0] - sp2[0];
+    }
+    if (sp1[1] - sp2[1]) {
+        return sp1[1] - sp2[1];
+    }
+    if (sp1[2] - sp2[2]) {
+        return sp1[2] - sp2[2];
+    }
+
+    return sp1[3] - sp2[3];
 }
 
 function computeCSS(element) {
@@ -142,8 +173,25 @@ function computeCSS(element) {
         }
 
         if (matched) {
+            let sp = specificity(rule.selectors[0]);
+            let computedStyle = element.computedStyle;
+
+            for (let declaration of rule.declarations) {
+                if (!computedStyle[declaration.property]) {
+                    computedStyle[declaration.property] = {}
+                }
+
+                if (!computedStyle[declaration.property].specificity) {
+                    computedStyle[declaration.property].value = declaration.value
+                    computedStyle[declaration.property].specificity = sp
+                } else if (compare(computedStyle[declaration.property].specificity, sp) < 0) {
+                    computedStyle[declaration.property].value = declaration.value
+                    computedStyle[declaration.property].specificity = sp
+                }
+            }
+
             // 如果匹配到，我们要加入
-            console.log('Element', element, 'matched rule', rule);
+            // console.log('Element', element, 'matched rule', rule);
         }
     }
 }
@@ -173,7 +221,7 @@ function emit(token) {
 
         top.children.push(element);
 
-        element.parent = top;
+        // element.parent = top;
 
         if (!token.isSelfClosing) {
             stack.push(element)
@@ -429,4 +477,5 @@ module.exports.parseHTML = function parseHTML(html) {
 
     state = state(EOF);
     // console.log(stack[0]);
+    return stack[0];
 }
