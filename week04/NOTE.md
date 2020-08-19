@@ -16,6 +16,9 @@
     Main: height y top bottom,       Cross: width x left right
 
 flex排版需要知道子元素的，所以我们认为layout是发生在endTag之前的。
+
+### 总结
+处理了flexDirection和wrap相关的属性
 ## 1.2 收集元素进行
 
 ## 1.3 计算主轴

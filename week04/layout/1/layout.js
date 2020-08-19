@@ -76,10 +76,69 @@ function layout(element) {
         style.alignContent = 'stretch';
     }
 
-    let mainSize, mainStart, mainEnd, mainSign, mainBase,
-        crossSize, crossStart, crossEnd, crossSign, crossBase;
+    let mainSize; // 主轴尺寸
+    let mainStart; // 主轴起始缘
+    let mainEnd; // 主轴结束缘
+    let mainSign; // +1 或 -1
+    let mainBase; // 从左开始是0，从右开始是1
+    let crossSize, crossStart, crossEnd, crossSign, crossBase;
 
-    
+    if (style.flexDirection === 'row') {
+        mainSize = 'width';
+        mainStart = 'left';
+        mainEnd = 'right';
+        mainSign = +1;
+        mainBase = 0;
+
+        crossSize = 'height';
+        crossStart = 'top';
+        crossEnd = 'bottom';
+    }
+    if (style.flexDirection === 'row-reverse') {
+        mainSize = 'width';
+        mainStart = 'right';
+        mainEnd = 'left';
+        mainSign = -1;
+        mainBase = style.width;
+
+        crossSize = 'height';
+        crossStart = 'top';
+        crossEnd = 'bottom';
+    }
+
+    if (style.flexDirection === 'column') {
+        mainSize = 'height';
+        mainStart = 'top';
+        mainEnd = 'bottom';
+        mainSign = +1;
+        mainBase = 0;
+
+        crossSize = 'width';
+        crossStart = 'left';
+        crossEnd = 'right';
+    }
+    if (style.flexDirection === 'column-reverse') {
+        mainSize = 'height';
+        mainStart = 'bottom';
+        mainEnd = 'top';
+        mainSign = -1;
+        mainBase = style.height;
+
+        crossSize = 'width';
+        crossStart = 'right';
+        crossEnd = 'left';
+    }
+
+    // 反向的换行
+    if (style.flexWrap === 'wrap-reverse') {
+        var tmp = crossStart;
+        crossStart = crossEnd;
+        crossEnd = tmp;
+        crossSign = -1;
+    } else {
+        crossBase = 0;
+        crossSign = 1;
+    }
 }
 
-module.exports.layout = layout
+module.exports = layout
