@@ -145,21 +145,22 @@ function layout(element) {
         // 主轴没有设置尺寸，AutoMainSize为由子元素把它撑开
         elementStyle[mainSize] = 0;
 
+        // --------------这段代码有问题, 请留意 begin--------------
         for (let i = 0; i < items.length; i++) {
             let item = items[i];
             let itemStyle = getStyle(item);
             if (itemStyle[mainSize] !== null || itemStyle[mainSize] > 0) {
                 elementStyle[mainSize] = elementStyle[mainSize] + itemStyle[mainSize];
             }
-
         }
         isAutoMainSize = true;
+        // --------------这段代码有问题, 请留意 end--------------
     }
 
     let flexLine = [];
     let flexLines = [flexLine];
 
-    let mainSpace = elementStyle[mainSize];
+    let mainSpace = elementStyle[mainSize]; // 剩余控件
     let crossSpace = 0;
 
     for (let i = 0; i < items.length; i++) {
@@ -172,9 +173,45 @@ function layout(element) {
         }
 
         if (itemStyle.flex) {
+            // 可伸缩元素
             flexLine.push(item);
+        } else if (style.flexWrap === 'nowrap' && isAutoMainSize) {
+            // 计算主轴，交叉轴剩余控件
+            mainSpace -= itemStyle[mainSize];
+
+            // 在flex布局中，它的交叉轴尺寸 取决于 交叉轴方向尺寸最大的那个元素
+            if (itemStyle[crossSize] !== null && itemStyle[crossSize] !== (void 0)) {
+                crossSpace = Math.max(crossSpace, itemStyle[crossSize]);
+            }
+
+            flexLine.push(item);
+        } else {
+            if (itemStyle[mainSize] > style[mainSize]) {
+                itemStyle[mainSize] = style[mainSize];
+            }
+
+            // 主轴剩余控件不足，换行
+            if (mainSpace < itemStyle[mainSize]) {
+                flexLine.mainSpace = mainSpace;
+                flexLine.crossSpace = crossSpace;
+                flexLine = [item];
+                flexLines.push(flexLine);
+                mainSpace = style[mainSize];
+                crossSpace = 0;
+            } else {
+                flexLine.push(item);
+            }
+
+            // 在flex布局中，它的交叉轴尺寸 取决于 交叉轴方向尺寸最大的那个元素
+            if (itemStyle[crossSize] !== null && itemStyle[crossSize] !== (void 0)) {
+                crossSpace = Math.max(crossSpace, itemStyle[crossSize]);
+            }
+            mainSpace -= itemStyle[mainSize];
         }
     }
+
+    flexLine.mainSpace = mainSpace;
+    console.log(items);
 }
 
 module.exports = layout
