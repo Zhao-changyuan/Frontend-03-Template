@@ -166,8 +166,13 @@ function layout(element) {
         let item = items[i];
         let itemStyle = getStyle(item);
 
+        // 没有设置主轴尺寸，则默认设置为0
         if (itemStyle[mainSize] === null) {
             itemStyle[mainSize] = 0;
+        }
+
+        if (itemStyle.flex) {
+            flexLine.push(item);
         }
     }
 }
