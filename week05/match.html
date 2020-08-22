@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>match</title>
+</head>
+<body>
+<div id="hahah" class="dd ee ss">
+    <div class="main">
+        <h1 id="title">标题</h1>
+    </div>
+</div>
+
+<div>
+    <h1 id="id" class="class"></h1>
+</div>
+
+<script>
+/*
+    编写一个 match 函数。它接受两个参数，第一个参数是一个选择器字符串性质，第二个是一个 HTML 元素。
+    这个元素你可以认为它一定会在一棵 DOM 树里面。通过选择器和 DOM 元素来判断，
+    当前的元素是否能够匹配到我们的选择器。（不能使用任何内置的浏览器的函数，
+    仅通过 DOM 的 parent 和 children 这些 API，来判断一个元素是否能够跟一个选择器相匹配。）
+*/
+
+/**
+ 适用场景：
+ 这里第一个参数selector是一个复杂选择器，仅实现<复合选择器><sp><复合选择器><sp>...
+ 其中符合选择器中可使用的简单选择器也省略了一部分，仅支持类型选择器、类选择器、id选择器。
+*/
+function match(selector, element) {
+
+    if (!selector || !element) {
+        return false;
+    }
+
+    // 1. 获取当前元素和所有父节点属性
+    let nodes = [];
+    nodes.push({
+        node: element,
+        attributes: getElementAttributes(element),
+    });
+    getParentNode(nodes, element);
+
+    // 2. 解析选择器
+    let compoundSelectorArr = selector.split(' ').map(item => parseCompoundSelector(item)).reverse();
+    
+    // 3. 匹配
+    if (!matchCompoundSelector(compoundSelectorArr[0], nodes[0])) {
+        console.log('匹配失败');
+        return false;
+    }
+
+    let i = 1;
+    let j = 1;
+    while(i < compoundSelectorArr.length && j < nodes.length) {
+        let curSelector = compoundSelectorArr[i];
+        let curNode = nodes[j];
+
+        if (matchCompoundSelector(curSelector, curNode)) {
+            i++;
+            j++;
+        } else {
+            j++;
+        }
+    }
+
+    let flag = i === compoundSelectorArr.length;
+
+    console.log(flag ? '匹配成功' : '匹配失败');
+    return flag;
+}
+
+function matchCompoundSelector(selectorInfo, element) {
+    let classMatched = true;
+    let tagMatched = true;
+    let idMatched = true;
+    let attributes = element.attributes;
+
+    if (selectorInfo.tag && selectorInfo.tag !== attributes.tag) {
+        tagMatched = false;
+    }
+
+    if (selectorInfo.classArr.length > 0) {
+        classMatched = selectorInfo.classArr.filter(item => attributes.classArr.includes(item)).length === 
+                        selectorInfo.classArr.length;
+    }
+
+    if (selectorInfo.id && selectorInfo.id !== attributes.id) {
+        idMatched = false;
+    }
+    
+    return classMatched && tagMatched && idMatched;
+}
+
+// 获取DOM元素的父节点
+function getParentNode(nodes, element) {
+    if (element.parentNode && 'html' !== element.parentNode.tagName.toLowerCase()) {
+        let parent = element.parentNode;
+        let parentNode = {
+            node: parent,
+            attributes: getElementAttributes(parent),
+        }
+
+        nodes.push(parentNode);
+        getParentNode(nodes, parent);
+    }
+}
+
+// 解析复合选择器中出现的 类 id 类型三类选择器
+function parseCompoundSelector(selector) {
+    let resultArr = selector.match(/(\w+)|(#\w+)|(\.\w+)/g)
+    let selectorInfo = {
+        classArr: [],
+        id: '',
+        tag: '',
+    };
+
+    resultArr.forEach(item => {
+        if (item[0] === '.') {
+            selectorInfo.classArr.push(item.slice(1))
+        } else if (item[0] === '#') {
+            selectorInfo.id = item.slice(1)
+        } else {
+            selectorInfo.tag = item.toLowerCase()
+        }
+    });
+
+    return selectorInfo;
+}
+
+// 获取DOM元素的 类 id 类型属性
+function getElementAttributes(element) {
+    let info = {
+        classArr: [],
+        id: '',
+        tag: element.tagName.toLowerCase(),
+    }
+
+    if (element.id) {
+        info.id = element.id;
+    }
+
+    if (element.className) {
+        info.classArr = element.className.split(' ')
+    }
+
+    return info;
+}
+
+match('.dd.ee33.ss h1#title', document.getElementById('title'));
+match('div #id.class', document.getElementById('id'));
+
+</script>
+</body>
+</html>
