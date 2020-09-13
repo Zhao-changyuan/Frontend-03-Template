@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+<div id="a" style="height: 300px; background: lightblue;">
+    <div id="b" style="height: 200px; background: pink;"></div>
+</div>
+<script>
+    let a = document.getElementById('a');
+    let b = document.getElementById('b');
+
+    b.addEventListener('click', function() { console.log('b2'); });
+
+    a.addEventListener('click', function() { console.log('a'); });
+    b.addEventListener('click', function() { console.log('b'); });
+
+    a.addEventListener('click', function() { console.log('a1'); }, true);
+    b.addEventListener('click', function() { console.log('b1'); }, true);
+</script>
+</body>
+</html>
