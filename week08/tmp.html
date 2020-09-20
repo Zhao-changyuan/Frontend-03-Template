@@ -1,0 +1,27 @@
+<script>
+
+async function func() {
+    while(true) {
+        await new Promise((resolve) => {
+            setTimeout(() => {
+                console.log('红灯亮');
+                resolve()
+            },10000)
+        })
+        await new Promise((resolve) => {
+            setTimeout(() => {
+                console.log('黄灯亮');
+                resolve()
+            },10000)
+        })
+        await new Promise((resolve) => {
+            setTimeout(() => {
+                console.log('绿灯亮');
+                resolve()
+            },10000)
+        })
+    }
+}
+
+func()
+</script>
