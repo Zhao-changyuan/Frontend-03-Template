@@ -1,0 +1,220 @@
+<style>
+    #gobang-board {
+        border: 2px solid black;
+        background: white;
+        display: block;
+        margin: 0 auto;
+        background-color: #D1AE8E;
+        cursor: pointer;
+    }
+</style>
+
+<canvas id="gobang-board" width="640" height="640"></canvas>
+
+<script>
+
+let pattern = null;
+let color = 1; // 1：黑子；2：白子
+
+function init() {
+    pattern = new Array(15 * 15).fill(0);
+    let board = document.getElementById('gobang-board');
+
+    board.width  = board.width;
+    board.height = board.height;
+    board.addEventListener('click', (e) => {
+        if ((e.offsetX >= 20 && e.offsetX <= 620) && (e.offsetY >= 20 && e.offsetY <= 620)) {
+            let x = e.offsetX;
+            let y = e.offsetY;
+            let posX = parseInt(x / 40) + (x % 40 > 20 ? 1 : 0) - 1;
+            let posY = parseInt(y / 40) + (y % 40 > 20 ? 1 : 0) - 1;
+
+            userMove(posX, posY);
+        }
+    });
+}
+
+// 绘制
+function show() {
+    let board = document.getElementById('gobang-board');
+    let context = board.getContext('2d');
+
+    // 绘制棋盘
+    context.strokeStyle = '#45270D';
+    for (let i = 0; i < 15; i++) {
+        context.moveTo(40, 40 + i * 40);
+        context.lineTo(40 * 15, 40 + i * 40);
+
+        context.moveTo(40 + i * 40, 40);
+        context.lineTo(40 + i * 40, 40 * 15);
+    }
+    context.stroke();
+
+    // 绘制棋子
+    for (let i = 0; i < 15; i++) {
+        for (let j = 0; j < 15; j++) {
+            if (pattern[i * 15 + j] === 1) {
+                context.fillStyle = '#000';
+                context.beginPath();
+                context.arc(40 + j * 40, 40 + i * 40, 14, 0, 2 * Math.PI);
+                context.closePath();
+                context.fill();
+            } else if (pattern[i * 15 + j] === 2) {
+                context.fillStyle = '#FFF';
+                context.beginPath();
+                context.arc(40 + j * 40, 40 + i * 40, 13, 0, 2 * Math.PI);
+                context.closePath();
+                context.fill();
+            }
+        }
+    }
+    
+}
+
+function userMove(x, y) {
+    if (pattern[y * 15 + x]) {
+        return;
+    }
+
+    pattern[y * 15 + x] = color;
+
+    if (check(pattern, color, [x, y])) {
+        alert(color === 2 ? '⚪ is winner!' : '⚫ is winner!')
+    }
+
+    color = 3 - color;
+    show();
+
+    if (willWin(pattern, color)) {
+        console.log(color === 2 ? '⚪ will win!' : '⚫ will win!');
+    }
+}
+
+/**
+ * 如果能赢，则赢的那五子一定包含当前下的棋子
+ */
+function check(pattern, color, pos) {
+    // -
+    outer: for (let i = pos[0] - 4; i < pos[0] + 1; i++) {
+        let win = true;
+
+        if (i < 0) {
+            continue;
+        }
+
+        for (let j = 0; j < 5; j++) {
+            if (i + j > 14) {
+                continue outer;
+            }
+
+            if (pattern[pos[1] * 15 + i + j] !== color) {
+                win = false;
+                break;
+            }
+        }
+
+        if (win) {
+            return true;
+        }
+    }
+
+    // |
+    outer1: for (let j = pos[1] - 4; j < pos[1] + 1; j++) {
+        let win = true;
+
+        if (j < 0) {
+            continue;
+        }
+
+        for (let i = 0; i < 5; i++) {
+            if ((j + i) > 14) {
+                continue outer1;
+            }
+
+            if (pattern[(j + i) * 15 + pos[0]] !== color) {
+                win = false;
+                break;
+            }
+        }
+
+        if (win) {
+            return true;
+        }
+    }
+
+    // \
+    outer2: for (let i = 4; i >= 0; i--) {
+        let win = true;
+
+        if ((pos[0] - i) < 0 || (pos[1] - i) < 0) {
+            continue;
+        }
+
+        for (let j = 0; j < 5; j++) {
+            if ((pos[0] - i + j) > 14 || (pos[1] - i + j) > 14) {
+                continue outer2;
+            }
+
+            if (pattern[(pos[1] - i + j) * 15 + (pos[0] - i + j)] !== color) {
+                win = false;
+                break;
+            }
+        }
+
+        if (win) {
+            return true;
+        }
+    }
+
+    // /
+    outer2: for (let i = 4; i >= 0; i--) {
+        let win = true;
+
+        if ((pos[0] - i) < 0 || (pos[1] + i) > 14) {
+            continue;
+        }
+
+        for (let j = 0; j < 5; j++) {
+            if ((pos[0] - i + j) > 14 || (pos[1] + i - j) < 0) {
+                continue outer2;
+            }
+
+            if (pattern[(pos[1] + i - j) * 15 + (pos[0] - i + j)] !== color) {
+                win = false;
+                break;
+            }
+        }
+
+        if (win) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function clone(pattern) {
+    return Object.create(pattern);
+}
+
+function willWin(pattern, color) {
+    for(let i = 0; i < 15; i++) {
+        for(let j = 0; j < 15; j++) {
+            if (pattern[i * 15 + j]) {
+                continue;
+            }
+
+            let tmp = clone(pattern);
+            tmp[i * 15 + j] = color;
+            if (check(tmp, color, [j, i])) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+init();
+show();
+</script>

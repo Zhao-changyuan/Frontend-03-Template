@@ -1,0 +1,229 @@
+<style>
+    .cell {
+        display: inline-block;
+        line-height: 7px;
+        width: 6px;
+        height: 6px;
+        background-color: gray;
+        border-bottom: 1px solid #FFF;
+        border-right: 1px solid #FFF;
+        vertical-align: middle;
+    }
+
+    #container {
+        width: 701px;
+    }
+</style>
+
+<div id="container"></div>
+<button onclick="localStorage['map'] = JSON.stringify(map)">save</button>
+
+<script>
+
+class Sorted {
+    constructor(data, compare) {
+        this.data = data.slice();
+        this.compare = compare || ((a, b) => a - b);
+    }
+
+    take() {
+        if(!this.data.length) {
+            return;
+        }
+        let min = this.data[0];
+        let minIndex = 0;
+
+        for (let i = 1; i < this.data.length; i++) {
+            if (this.compare(this.data[i], min) < 0) {
+                min = this.data[i];
+                minIndex = i;
+            }
+        }
+
+        // 数组本身是一个无序的
+        this.data[minIndex] = this.data[this.data.length - 1];
+        this.data.pop();
+        return min;
+    }
+
+    give(v) {
+        this.data.push(v);
+    }
+
+    get length() {
+        return this.data.length;
+    }
+}
+
+class BinaryHeap {
+    constructor(data, compare) {
+      this.data = data.slice()
+      this.compare = compare || ((a, b) => a - b)
+    }
+    take() {
+      if (!this.data.length) {
+        return
+      }
+      let min = this.data[0]
+      let i = 0
+      while (i < this.data.length) {
+        if (i * 2 + 1 >= this.data.length) {
+          break
+        }
+        if (i * 2 + 2 >= this.data.length) {
+          this.data[i] = this.data[i * 2 + 1]
+          i = i * 2 + 1
+          break
+        }
+        if (this.compare(this.data[i * 2 + 1], this.data[i * 2 + 2]) < 0) {
+          this.data[i] = this.data[i * 2 + 1]
+          i = i * 2 + 1
+        } else {
+          this.data[i] = this.data[i * 2 + 2]
+          i = i * 2 + 2
+        }
+      }
+      if (i < this.data.length - 1) {
+        this.insertAt(i, this.data.pop())
+      } else {
+        this.data.pop()
+      }
+      return min
+    }
+    insertAt(i, v) {
+      this.data[i] = v
+      while (i > 0 && this.compare(v, this.data[Math.floor((i - 1) / 2)]) < 0) {
+        this.data[i] = this.data[Math.floor((i - 1) / 2)]
+        this.data[Math.floor((i - 1) / 2)] = v
+        i = Math.floor((i - 1) / 2)
+      }
+    }
+    insert(v) {
+      this.insertAt(this.data.length, v)
+    }
+    get length() {
+      return this.data.length
+    }
+  }
+
+let map = localStorage['map'] ? JSON.parse(localStorage['map']) : Array(10000).fill(0);
+
+let container = document.getElementById('container');
+for(let y = 0; y < 100; y++) {
+    for (let x = 0; x < 100; x++) {
+        let cell = document.createElement('div');
+        cell.classList.add('cell');
+
+        if (map[100 * y + x] === 1) {
+            cell.style.backgroundColor = 'black';
+        }
+
+        cell.addEventListener('mousemove', () => {
+            if (mousedown) {
+                if (clear) {
+                    cell.style.backgroundColor = "";
+                    map[100*y + x] = 0;
+                } else {
+                    cell.style.backgroundColor = "black";
+                    map[100*y + x] = 1;
+                }
+            }
+        });
+        container.appendChild(cell);
+    }
+}
+
+let mousedown = false;
+let clear = false;
+document.addEventListener('mousedown', e => {
+    mousedown = true;
+    clear = (e.which === 3);
+});
+document.addEventListener("mouseup", () => mousedown = false);
+document.addEventListener("contextmenu", e => e.preventDefault());
+
+function sleep(t) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, t);
+    });
+}
+
+async function findPath(map, start, end) {
+    let table = Object.create(map);
+    // 每次要取跟终点距离最小的那个
+    let queue = new BinaryHeap([start], (a, b) => distance(a) - distance(b));
+
+    async function insert(x, y, pre) {
+        let index = y * 100 + x;
+        if (x < 0 || x >= 100 || y < 0 || y >= 100) {
+            return ;
+        }
+        //******************************
+        // 有些点一开始被标为了可达，但是这个时候的前驱的点并不一定是最好的一个前驱的点
+        // 如果新的前驱点到达当前点的步数小于旧的前驱节点，则更新前驱节点，并将该节点再次插入到queue中
+        if (table[index]) {
+            if (table[index] !== 1) {
+                let oldPre = table[index]
+                let curPre = pre
+                
+                if ((table[curPre[1] * 100 + curPre[0]][2] + 1) < table[oldPre[1] * 100 + oldPre[0]][2]) {
+                    table[index] = [curPre[0], curPre[1], (table[curPre[1] * 100 + curPre[0]][2] ? (table[curPre[1] * 100 + curPre[0]][2] + 1) : 1)];
+                    queue.insert([x, y]); // 再次加入
+                }
+            }
+            return ;
+        }
+
+        // await sleep(5);
+        // debugger
+        container.children[y * 100 + x].style.backgroundColor = 'lightgreen';
+        // 走过的点，进行标记为前驱节点的坐标，不重复走， 下标=2表示走到这一点要走几步
+        //******************************
+        table[y * 100 + x] = [pre[0], pre[1], (table[pre[1] * 100 + pre[0]][2] ? (table[pre[1] * 100 + pre[0]][2] + 1) : 1)];
+        queue.insert([x, y]);
+    }
+
+    function distance(point) {
+        return (point[0] - end[0]) ** 2 + (point[1] - end[1]) ** 2;
+    }
+
+    while(queue.length) {
+        let [x, y] = queue.take();
+        // console.log(x,y);
+
+        if (x === end[0] && y === end[1]) {
+            let path = []
+
+            while(x !== start[0] || y !== start[1]) {
+                path.push(map[y * 100 + x]);
+                [x, y] = table[y * 100 + x];
+                await sleep(30);
+                container.children[y * 100 + x].style.backgroundColor = 'red';
+                console.log([x, y]);
+            }
+
+            console.log('path length: ', path.length);
+            return path;
+        }
+
+        let pre = [];
+        if (x === start[0] && y === start[1]) {
+            pre = [x, y, 0];
+        } else {
+            pre = [x, y, table[y * 100 + x][2]];
+        }
+
+        await insert(x - 1, y, pre);
+        await insert(x, y - 1, pre);
+        await insert(x + 1, y, pre);
+        await insert(x, y + 1, pre);
+
+        await insert(x - 1, y - 1, pre);
+        await insert(x + 1, y - 1, pre);
+        await insert(x - 1, y + 1, pre);
+        await insert(x + 1, y + 1, pre);
+    }
+
+    return null;
+}
+</script>
