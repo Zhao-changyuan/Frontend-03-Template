@@ -7,18 +7,22 @@ const ANIMATIONS = Symbol("animations");
 const START_TIME = Symbol("start-time");
 const PAUSE_START = Symbol("pause-start"); // 暂停开始时间
 const PAUSE_TIME = Symbol("pause-time"); // 暂停时间
-const PAUSE_STATUS = Symbol("pause-status"); // 暂停状态
 
 // 时间线
 export class Timeline {
     constructor() {
+        this.state = 'Inited';
         this[ANIMATIONS] = new Set();
         this[START_TIME] = new Map();
-        this[PAUSE_STATUS] = false;
     }
 
     // 没有stop的状态
     start() {
+        if (this.state !== 'Inited') {
+            return;
+        }
+        this.state = "started";
+
         let startTime = Date.now();
         this[PAUSE_TIME] = 0;
 
@@ -52,29 +56,36 @@ export class Timeline {
 
     // 暂停，暂停和恢复是一组，要将暂停开始的时间和暂停结束的时间记下来
     pause() {
-        this[PAUSE_STATUS] = true;
+        if (this.state !== 'started') {
+            return;
+        }
+        this.state = "paused";
+
         this[PAUSE_START] = Date.now();
         cancelAnimationFrame(this[TICK_HANDLER]);
     }
 
     // 恢复
     resume() {
-        if (this[PAUSE_STATUS]) {
-            this[PAUSE_TIME] += Date.now() - this[PAUSE_START];
-            this[TICK]();
-            this[PAUSE_STATUS] = false;
+        if (this.state !== 'paused') {
+            return;
         }
+        this.state = "started";
+
+        this[PAUSE_TIME] += Date.now() - this[PAUSE_START];
+        this[TICK]();
     }
 
     // 重启
     reset() {
         this.pause();
+        this.state = "started";
+
         let startTime = Date.now();
         this[PAUSE_START] = 0;
         this[PAUSE_TIME] = 0;
         this[ANIMATIONS] = new Set();
         this[START_TIME] = new Map();
-        this[PAUSE_STATUS] = false;
         this[TICK_HANDLER] = null;
     }
 
